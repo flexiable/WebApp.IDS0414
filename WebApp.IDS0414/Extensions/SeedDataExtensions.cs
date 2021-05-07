@@ -34,7 +34,7 @@ namespace WebApp.IDS0414.Extensions
                 var _ConfigurationDbContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
                 var _ApplicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var _PersistedGrantDbContext = scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>();
-                _ConfigurationDbContext.Database.EnsureCreated();
+                _ConfigurationDbContext.Database.EnsureCreated(); _ApplicationDbContext.Database.EnsureCreated();
                 if (_ApplicationDbContext.Database.GetPendingMigrations().Any())
                 {
                     _ApplicationDbContext.Database.Migrate();

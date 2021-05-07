@@ -25,7 +25,10 @@
                     <a class="dropdown-item" href="/ClientsManager/index2scope">API作用域</a>
                 </div>
             </li>
-            
+            <li class="nav-item ">  <a class="nav-link" href="/ClientsManager/Index">客户端</a></li>
+            <li class="nav-item ">  <a class="nav-link" href="/ApiResourcesManager/Index">API资源</a></li>
+            <li class="nav-item ">  <a class="nav-link" href="/ClientsManager/index2scope">API作用域</a></li>
+            <li class="nav-item ">  <a class="nav-link" href="/ManagementCenter/Index">API作用域</a></li>
         </ul>
         @if (!string.IsNullOrWhiteSpace(name))
         {
@@ -33,7 +36,7 @@
         <li class="nav-item dropdown">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">@name <b class="caret"></b></a>
 
-            <div class="dropdown-menu">
+            <div class="dropdown-menu" id="logoutdiv">
                 <a class="dropdown-item" asp-action="Logout" asp-controller="Account">Logout</a>
             </div>
         </li>

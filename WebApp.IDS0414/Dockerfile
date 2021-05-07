@@ -1,11 +1,10 @@
-# 使用运行时镜像
+# ʹ������ʱ����
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim
-# 设置工作目录
+# ���ù���Ŀ¼
 WORKDIR /app
-# 把目录下的内容都复制到当前目录下
+# ��Ŀ¼�µ����ݶ����Ƶ���ǰĿ¼��
 COPY . .
-# 暴露80端口
+# ��¶80�˿�
 EXPOSE 423
-# 运行镜像入口命令和可执行文件名称
+# ���о����������Ϳ�ִ���ļ�����
 ENTRYPOINT ["dotnet", "WebApp.IDS0414.dll"]
-

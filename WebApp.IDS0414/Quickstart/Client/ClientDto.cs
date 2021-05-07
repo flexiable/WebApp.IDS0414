@@ -1,4 +1,4 @@
-﻿namespace Blog.IdentityServer.Controllers.Client
+﻿namespace WebApp.IDS0414.Controllers.Client
 {
     public class ClientDto
     {
@@ -12,6 +12,9 @@
         public string AllowedCorsOrigins { get; set; }
         public string RedirectUris { get; set; }
         public string PostLogoutRedirectUris { get; set; }
+        public bool Enabled
+        { get; set; }
+
 
         public int? AccessTokenLifetime { get; set; }
     }

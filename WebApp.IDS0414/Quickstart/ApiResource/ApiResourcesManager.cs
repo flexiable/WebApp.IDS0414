@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Blog.IdentityServer.Controllers.Client;
+using WebApp.IDS0414.Controllers.Client;
 
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
@@ -9,8 +9,9 @@ using IdentityServer4.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static IdentityServer4.IdentityServerConstants;
 
-namespace Blog.IdentityServer.Controllers.ApiResource
+namespace WebApp.IDS0414.Controllers.ApiResource
 {
     [Route("[controller]/[action]")]
     [ApiController]
@@ -57,7 +58,18 @@ namespace Blog.IdentityServer.Controllers.ApiResource
             var model = (await _configurationDbContext.ApiResources
                 .Include(d => d.UserClaims).Include(d => d.Scopes)
                 .ToListAsync()).FirstOrDefault(d => d.Id == id).ToModel();
+            var StandardScopess = typeof(StandardScopes).GetFields();
+            // ViewBag.GrantType =Newtonsoft.Json.JsonConvert.SerializeObject( gt.GetFields().Select(X => new { name = X.Name, value = X.GetValue(gt).ToString() }).ToList());
+            var StandardScopes2Api = new List<IdentityServer4.EntityFramework.Entities.ApiScope>();
+            foreach (var StandardScope in StandardScopess)
+            {
+                StandardScopes2Api.Add(new IdentityServer4.EntityFramework.Entities.ApiScope() { Name = StandardScope.GetValue(StandardScopess).ToString(), DisplayName = StandardScope.Name });
+            }
+            if (_configurationDbContext.ApiScopes.Count()>0)
+            {
 
+            StandardScopes2Api.AddRange(_configurationDbContext.ApiScopes);
+            }
             var apiResourceDto = new ApiResourceDto();
             if (model != null)
             {
@@ -68,9 +80,10 @@ namespace Blog.IdentityServer.Controllers.ApiResource
                     Description = model?.Description,
                     UserClaims = string.Join(",", model?.UserClaims),
                     Scopes = string.Join(",", model?.Scopes),
+                    StandardScopes= StandardScopes2Api.Select(X=>new  { id=X.Name, text=X.DisplayName })
                 };
             }
-
+            apiResourceDto.StandardScopes = StandardScopes2Api.Select(X => new { id = X.Name, text = X.DisplayName });
             return new MessageModel<ApiResourceDto>()
             {
                 success = true,

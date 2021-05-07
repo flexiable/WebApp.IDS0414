@@ -4,27 +4,36 @@
 }
 <style>
     section.todoapp {
-        width: 600px;
+        
     }
 
-    input.Client-input {
-        float: right;
-        width: 470px;
+    input.form-control {
+        /*float: right;*/
+        width: 100%;
         height: 28px;
         margin: 5px;
         border: 0;
         border-bottom: 1px dashed;
     }
-
     section.main {
-        height: 38px;
-        text-align: end;
-        text-align: -webkit-right;
+        height: 48px;
+        text-align: left;
         line-height: 38px;
     }
 
     footer.info {
         margin-top: 20px;
+    }
+
+    .todoapp .title {
+        float: left;
+        width: 130px;
+        text-align: right;
+    }
+
+    .todoapp .contents {
+        float: left;
+        width: calc(100% - 200px);
     }
 </style>
 <script src="~/js/axios.min.js"></script>
@@ -33,30 +42,40 @@
     <h3>{{ title }}</h3>
 
     <section class="main" v-cloak>
-        Api资源名称：
-        <input class="Client-input" type="text" v-model="clientDto.name">
+        <div class="title">Api资源名称：</div>
+
+        <div class="contents"> <input class="form-control" type="text" v-model="clientDto.name"> </div>
     </section>
     <section class="main" v-cloak>
-        显示名称：
-        <input class="Client-input" type="text" v-model="clientDto.displayName">
+        <div class="title">显示名称：</div>
+        <div class="contents"> <input class="form-control" type="text" v-model="clientDto.displayName"> </div>
     </section>
     <section class="main" v-cloak>
-        描述：
-        <input class="Client-input" type="text" v-model="clientDto.description">
+        <div class="title">描述：</div>
+
+        <div class="contents"> <input class="form-control" type="text" v-model="clientDto.description"> </div>
     </section>
     <section class="main" v-cloak>
-        允许的声明：
-        <input class="Client-input" type="text" v-model="clientDto.userClaims">
+        <div class="title">允许的声明：</div>
+
+        <div class="contents"> <input class="form-control" type="text" v-model="clientDto.userClaims"> </div>
     </section>
     <section class="main" v-cloak>
-        允许的作用域：
-        <input class="Client-input" type="text" v-model="clientDto.scopes">
+
+        <div class="title">允许的作用域：</div>
+        <div class="contents">
+            <select class="form-control js-example-basic-multiple" v-model="clientDto.scopes"
+                    multiple="multiple">
+            </select>
+        </div>
+
     </section>
     <footer class="info">
         <input type="button" onclick="{ window.location.href='/ApiResourcesManager/index' }" class="btn btn-default" value="< Back">
         <input type="button" class="btn btn-primary" @@click="saveClients" value="Submit">
 
     </footer>
+</section>
     <script>
     // app Vue instance
     var app = new Vue({
@@ -66,7 +85,8 @@
                 name:'',
                 displayName:'',
                 description:'',
-                userClaims:'',
+                userClaims: '', scopes: '',
+                StandardScopes:''
             },
             id: @(ViewBag.ApiResourceId),
             title: '添加',
@@ -81,6 +101,12 @@
             axios.get('/ApiResourcesManager/GetDataById?id='+_this.id)
                 .then(function (response) {
                     _this.clientDto = (response.data.response);
+                    $('.js-example-basic-multiple').select2({
+                        // placeholder: "请选择作用域",
+                        //minimumInputLength: 1,
+                        data: _this.clientDto.standardScopes,
+                        search: true
+                    }).val(_this.clientDto.scopes.split(',')).trigger('change');
                 })
                 .catch(function (error) {
                     console.log(error);

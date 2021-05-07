@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using IDS.Infrastructure;
 using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Events;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Security.Claims;
@@ -28,15 +30,17 @@ namespace IdentityServerHost.Quickstart.UI
     /// The login service encapsulates the interactions with the user data store. This data store is in-memory only and cannot be used for production!
     /// The interaction service provides a way for the UI to communicate with identityserver for validation and context retrieval
     /// </summary>
-    [SecurityHeaders]
+   // [SecurityHeaders]
     [AllowAnonymous]
     public class AccountController : Controller
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly TestUserStore _users;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
+        private readonly ILogger _logger;
         // 注入用户管理
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -45,18 +49,19 @@ namespace IdentityServerHost.Quickstart.UI
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
-            IEventService events,
+            IEventService events,ILogger<AccountController> logger, IUnitOfWork unitOfWork,
             TestUserStore users = null)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
             _users = users ?? new TestUserStore(TestUsers.Users);
+            _logger = logger;
             _signInManager = signInManager;
             _userManager = userManager;
             _interaction = interaction;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
-            _events = events;
+            _events = events; _unitOfWork = unitOfWork;
         }
         [HttpGet]
         [Route("account/register")]
@@ -178,7 +183,19 @@ namespace IdentityServerHost.Quickstart.UI
 
             return View(users);
         }
+        [HttpGet]  
+        [Authorize]
+        public async  Task<IActionResult> GetUser()
+        {
 
+            /* var users = _userManager.Users.FirstOrDefault(X=>X.Id==User.Identity.GetSubjectId());
+
+             return Json(users);*/
+            await _unitOfWork.GetRepository<ApplicationUser>().InsertAsync(new ApplicationUser { Email = "email", UserName = "username", PhoneNumber = "phonenumber" });
+            await _unitOfWork.GetRepository<ApplicationRole>().InsertAsync(new ApplicationRole {  Name = "ApplicationRoleName",Id=Guid.NewGuid().ToString()});
+            await _unitOfWork.SaveChangesAsync(true);
+            return Json(await _unitOfWork.GetRepository<ApplicationUser>().GetPagedListAsync(X => true));
+        }
         /// <summary>
         /// Entry point into the login workflow
         /// </summary>
@@ -194,15 +211,82 @@ namespace IdentityServerHost.Quickstart.UI
                 // we only have one option for logging in and it's an external provider
                 return RedirectToAction("Challenge", "External", new { scheme = vm.ExternalLoginScheme, returnUrl });
             }
+            _logger.LogInformation("Content-Security-Policy" + HttpContext.Response.Headers.Count());
+            if (HttpContext.Response.Headers.ContainsKey("Content-Security-Policy"))
+            {
 
+                HttpContext.Response.Headers.Remove("Content-Security-Policy");
+            }
             return View(vm);
         }
-
         /// <summary>
         /// Handle postback from username/password login
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login2(LoginInputModel model, string button)
+        {
+            // check if we are in the context of an authorization request
+            var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+
+            
+
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByNameAsync(model.Username);
+
+                var props = new AuthenticationProperties()
+                {
+                    RedirectUri = Url.Action("ExternalLoginCallback"),
+
+                };
+                if (user != null)
+                {
+
+                    var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberLogin, lockoutOnFailure: true);
+                    if (result.Succeeded)
+                    {
+                        await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName));
+
+                        // make sure the returnUrl is still valid, and if so redirect back to authorize endpoint or a local page
+                        // the IsLocalUrl check is only necessary if you want to support additional local pages, otherwise IsValidReturnUrl is more strict
+                        /* if (_interaction.IsValidReturnUrl(model.ReturnUrl) || Url.IsLocalUrl(model.ReturnUrl))
+                         {
+                             bool isauth = HttpContext.User.IsAuthenticated();
+                             return Redirect(model.ReturnUrl);
+                         }*/
+                        Response.Cookies.Append("loginUser", Newtonsoft.Json.JsonConvert.SerializeObject(user));
+                        return Json(new { success=true});
+                    }
+                    else
+                    {
+                        await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials"));
+
+                        ModelState.AddModelError("", AccountOptions.InvalidCredentialsErrorMessage);
+                        return Json(new { success = false });
+                    }
+                }
+                else
+                {
+                    await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials"));
+
+                    ModelState.AddModelError("", AccountOptions.InvalidCredentialsErrorMessage);
+                    return Json(new { success = false });
+                }
+               
+            }
+
+            // something went wrong, show form with error
+            var vm = await BuildLoginViewModelAsync(model);
+             
+            {
+                return Json(new { success = false });
+            }
+        }
+        /// <summary>
+        /// Handle postback from username/password login
+        /// </summary>
+        [HttpPost]
+       
         [Route("oauth2/authorize")]
         public async Task<IActionResult> Login(LoginInputModel model, string button)
         {
@@ -247,6 +331,7 @@ namespace IdentityServerHost.Quickstart.UI
                 };
                 if (user != null )
                 {
+                   
                     var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberLogin, lockoutOnFailure: true);
                     if (result.Succeeded)
                     {
@@ -284,14 +369,16 @@ namespace IdentityServerHost.Quickstart.UI
             // build a model so the logout page knows what to display
             var vm = await BuildLogoutViewModelAsync(logoutId);
 
-            if (vm.ShowLogoutPrompt == false)
+            if (User?.Identity.IsAuthenticated == true)
             {
-                // if the request for logout was properly authenticated from IdentityServer, then
-                // we don't need to show the prompt and can just log the user out directly.
-                return await Logout(vm);
+                // delete local authentication cookie
+                //  await HttpContext.SignOutAsync();
+                await _signInManager.SignOutAsync();
+                // raise the logout event
+                await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
             }
 
-            return View(vm);
+            return Redirect("~/");
         }
 
         /// <summary>
@@ -340,6 +427,7 @@ namespace IdentityServerHost.Quickstart.UI
         /*****************************************/
         private async Task<LoginViewModel> BuildLoginViewModelAsync(string returnUrl)
         {
+            
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
             {

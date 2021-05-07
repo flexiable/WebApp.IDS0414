@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IDS.Infrastructure;
 using IdentityServer4;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
@@ -10,21 +11,26 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApp.IDS0414.Extensions;
+using WebApp.IDS0414.Quickstart.Common;
 using static IdentityModel.OidcConstants;
 
-namespace Blog.IdentityServer.Controllers.Client
+namespace WebApp.IDS0414.Controllers.Client
 {
     [Route("[controller]/[action]")]
     [ApiController]
+    
     public class ClientsManagerController : Controller
     {
+        
         private readonly ConfigurationDbContext _configurationDbContext;
 
         public ClientsManagerController(ConfigurationDbContext configurationDbContext)
         {
+            
             _configurationDbContext = configurationDbContext;
         }
-
+       
         /// <summary>
         /// 数据列表页
         /// </summary>
@@ -33,6 +39,8 @@ namespace Blog.IdentityServer.Controllers.Client
         [Authorize]
         public async Task<IActionResult> Index()
         {
+
+
             return View(await _configurationDbContext.Clients
                 .Include(d => d.AllowedGrantTypes)
                 .Include(d => d.AllowedScopes)
@@ -41,7 +49,28 @@ namespace Blog.IdentityServer.Controllers.Client
                 .Include(d => d.PostLogoutRedirectUris)
                 .ToListAsync());
         }
+        [HttpPost]
+        [Authorize]
+        public async Task<ResponsePaging<ClientDto>> GetAllClientPaging(Paging<ClientQueryParam> paging)
+        {
+            
+            var model = (await _configurationDbContext.Clients.Include(d => d.AllowedGrantTypes).ToListAsync()).Skip((paging.PageNum - 1)*paging.PageSize).Take(paging.PageSize).Where(X=>X.ClientId.Contains(paging.Filter.clientIdOrname)||X.ClientName.Contains(paging.Filter.clientIdOrname));
 
+
+            return new ResponsePaging<ClientDto>()
+            {
+                total = model.Count(),
+                rows = model.Select(X => new ClientDto
+                {
+                    id = X.Id,
+                    ClientId = X.ClientId,
+                    Enabled = X.Enabled,
+                    Description = X.Description,
+                    AllowedGrantTypes = X.AllowedGrantTypes?.FirstOrDefault()?.GrantType??""
+
+                }).ToList()
+            };
+        }
         /// <summary>
         /// 数据列表页
         /// </summary>
@@ -75,7 +104,15 @@ namespace Blog.IdentityServer.Controllers.Client
         public IActionResult CreateOrEdit(int id)
         {
             ViewBag.ClientId = id;
-            ViewBag.Scopes = (_configurationDbContext.ApiScopes.ToList());
+            var StandardScopes= typeof(StandardScopes).GetFields();
+           // ViewBag.GrantType =Newtonsoft.Json.JsonConvert.SerializeObject( gt.GetFields().Select(X => new { name = X.Name, value = X.GetValue(gt).ToString() }).ToList());
+            var StandardScopes2Api = new List<IdentityServer4.EntityFramework.Entities.ApiScope>();
+            foreach (var StandardScope in StandardScopes)
+            {
+                StandardScopes2Api.Add(new IdentityServer4.EntityFramework.Entities.ApiScope() { Name  = StandardScope.GetValue(StandardScopes).ToString(), DisplayName = StandardScope.Name });
+            }
+            StandardScopes2Api.AddRange(_configurationDbContext.ApiScopes);
+            ViewBag.Scopes =   ((StandardScopes2Api));
             return View();
         }
 
@@ -142,16 +179,16 @@ namespace Blog.IdentityServer.Controllers.Client
         }
         [HttpGet]
         [Authorize(Policy = "SuperAdmin")]
-        public async Task<MessageModel<ClientDto>> GetDataById(int id = 0)
+        public  MessageModel<ClientDto> GetDataById(int id = 0)
         {
-            var model = (await _configurationDbContext.Clients
+            var model = ( _configurationDbContext.Clients
                 .Include(d => d.AllowedGrantTypes)
                 .Include(d => d.AllowedScopes)
                 .Include(d => d.AllowedCorsOrigins)
                 .Include(d => d.RedirectUris)
                 .Include(d => d.PostLogoutRedirectUris)
-                .Include(d => d.ClientSecrets).AsSplitQuery()
-                .ToListAsync()).FirstOrDefault(d => d.Id == id).ToModel();
+                .Include(d => d.ClientSecrets)//.AsSplitQuery()
+                .ToList()).FirstOrDefault(d => d.Id == id).ToModel();
 
             var clientDto = new ClientDto();
             if (model != null)
@@ -189,6 +226,7 @@ namespace Blog.IdentityServer.Controllers.Client
                 {
                     ClientId = request?.ClientId,
                     ClientName = request?.ClientName,
+                    AllowOfflineAccess= request.AllowedScopes.Contains(",")? request.AllowedScopes.Split(",").Contains(StandardScopes.OfflineAccess):false,
                     Description = request?.Description,
                     AccessTokenLifetime=request.AccessTokenLifetime.Value,
                     AllowedCorsOrigins = request?.AllowedCorsOrigins?.Split(","),
@@ -202,7 +240,11 @@ namespace Blog.IdentityServer.Controllers.Client
                 {
                     client.ClientSecrets = new List<Secret>() { new Secret(request.ClientSecrets.Sha256()) };
                 }
-
+                if (_configurationDbContext.Clients.FirstOrDefault(X=>X.ClientId==client.ClientId)!=null)
+                {
+                    throw new Exception("已经存在相同客户端Id");
+               // ModelState.AddModelError("", "已经存在相同客户端Id");
+                }
                 var result = (await _configurationDbContext.Clients.AddAsync(client.ToEntity()));
                 await _configurationDbContext.SaveChangesAsync();
             }
@@ -221,7 +263,7 @@ namespace Blog.IdentityServer.Controllers.Client
                 modelEF.ClientId = request?.ClientId;
                 modelEF.ClientName = request?.ClientName;
                 modelEF.Description = request?.Description;
-
+                modelEF.AllowOfflineAccess = request.AllowedScopes.Contains(",") ? request.AllowedScopes.Split(",").Contains(StandardScopes.OfflineAccess) : false;
                 var AllowedCorsOrigins = new List<IdentityServer4.EntityFramework.Entities.ClientCorsOrigin>();
                 if (!string.IsNullOrEmpty(request?.AllowedCorsOrigins))
                 {
@@ -265,7 +307,7 @@ namespace Blog.IdentityServer.Controllers.Client
                         {
                             Client = modelEF,
                             ClientId = modelEF.Id,
-                            Scope = _configurationDbContext.ApiScopes.Find( s).Name
+                            Scope = s
                         });
                     });
                     modelEF.AllowedScopes = AllowedScopes;
@@ -314,5 +356,11 @@ namespace Blog.IdentityServer.Controllers.Client
                 msg = "添加成功",
             };
         }
+    }
+
+    internal class SelectModel
+    {
+        public string name { get; set; }
+        public string value { get; set; }
     }
 }

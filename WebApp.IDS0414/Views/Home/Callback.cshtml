@@ -1,0 +1,18 @@
+﻿<script src="~/js/oidc-client.js"></script>
+<script src="~/js/app.js"></script>
+<script>
+    new Oidc.UserManager({ response_mode: "query" }).signinRedirectCallback().then(function () {
+
+        mgr.getUser().then(function (user) {
+            if (user) {
+                log("User logged in", user.profile);
+                //  window.location = "/Home/Index?name=" + user.profile.name + "&sub=" + user.profile.sub;
+                window.location = `/Home/Index/${user.profile.name}/${user.profile.sub}`;
+            }
+            else {
+                log("User not logged in");
+            }
+        });
+    }).catch(function (e) {
+        console.error(e);
+    });</script>

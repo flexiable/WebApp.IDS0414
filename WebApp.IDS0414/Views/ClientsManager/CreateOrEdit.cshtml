@@ -4,7 +4,7 @@
     section.todoapp {
     }
 
-    input.Client-input {
+    input.form-control {
         /*float: right;*/
         width: 100%;
         height: 28px;
@@ -14,7 +14,7 @@
     }
 
     section.main {
-        height: 38px;
+        height: 48px;
         text-align: left;
         line-height: 38px;
     }
@@ -25,7 +25,7 @@
 
     .todoapp .title {
         float: left;
-        width: 130px;
+        width: 130px;text-align:right;
     }
 
     .todoapp .contents {
@@ -41,56 +41,68 @@
 
     <section class="main" v-cloak>
         <div class="title">客户端Id：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.clientId"></div>
+        <div class="contents"><input class="form-control" type="text" v-model="clientDto.clientId"></div>
     </section>
     <section class="main" v-cloak>
         <div class="title">客户端名称：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.clientName"></div>
+        <div class="contents"><input class="form-control" type="text" v-model="clientDto.clientName"></div>
     </section>
     <section class="main" v-cloak>
         <div class="title">客户端密钥：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.clientSecrets"></div>
+        <div class="contents"><input class="form-control" type="text" v-model="clientDto.clientSecrets"></div>
     </section>
     <section class="main" v-cloak>
         <div class="title">描述：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.description"></div>
+        <div class="contents"><input class="form-control" type="text" v-model="clientDto.description"></div>
     </section>
     <section class="main" v-cloak>
         <div class="title">允许的授权类型：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.allowedGrantTypes"></div>
+        <div class="contents" style="width: 200px;">
+            <select class="form-control" v-model="clientDto.allowedGrantTypes"
+                    placeholder="选择授权类型">
+                <option :value="coupon.value" v-for="coupon in allowedGrantTypes">{{coupon.name}}</option>
+          @*      @foreach (var item in ViewBag.GrantType)
+                {
+
+            <option value="@item.value">@item.name</option>*@
+
+            </select>
+            @*<input class="form-control" type="text" v-model="clientDto.allowedGrantTypes">*@
+
+        </div>
     </section>
     <section class="main" v-cloak>
         <div class="title">作用域：</div>
-        <div class="contents">
-            <select  v-model="clientDto.allowedScopes"
-                   
-                    placeholder="选择作用域">
+        <div class="contents" >
+            <select class="form-control js-example-basic-multiple"   v-model="clientDto.allowedScopes"
+                   multiple="multiple"
+                    >
 
                 @foreach (var item in ViewBag.Scopes)
                 {
                    
-    <option value="@item.Id">@item.Name</option>
+    <option value="@item.Name">@item.DisplayName</option>
 }
             </select>
 
-            @*<input class="Client-input" type="text" v-model="clientDto.allowedScopes">*@
+            @*<input class="form-control" type="text" v-model="clientDto.allowedScopes">*@
         </div>
     </section>
     <section class="main" v-cloak>
         <div class="title">允许的跨域域名：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.allowedCorsOrigins"></div>
+        <div class="contents"><input class="form-control" type="text" v-model="clientDto.allowedCorsOrigins"></div>
     </section>
     <section class="main" v-cloak>
         <div class="title">回调地址：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.redirectUris"></div>
+        <div class="contents"><input class="form-control" type="text" v-model="clientDto.redirectUris"></div>
     </section>
     <section class="main" v-cloak>
         <div class="title">退出的回调：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.postLogoutRedirectUris"></div>
+        <div class="contents"><input class="form-control" type="text" v-model="clientDto.postLogoutRedirectUris"></div>
     </section>
     <section class="main" v-cloak>
         <div class="title">有效时长（秒）：</div>
-        <div class="contents"><input class="Client-input" type="text" v-model="clientDto.accessTokenLifetime"></div>
+        <div class="contents"><input class="form-control" type="text" v-model="clientDto.accessTokenLifetime"></div>
     </section>
     <footer class="info">
         <input type="button" onclick="{ window.location.href='/clientsManager/index' }" class="btn btn-default" value="< Back">
@@ -115,6 +127,7 @@
                 postLogoutRedirectUris: '',
                 accessTokenLifetime:3600
             },
+            allowedGrantTypes:[],
             id: @(ViewBag.ClientId),
             title: '添加',
             editedTodo: null,
@@ -122,41 +135,77 @@
         },
         created: function () {
             let _this = this;
-           // _this.clientDto.allowedScopes = JSON.parse(this.clientDto.allowedScopes);
+            // _this.clientDto.allowedScopes = JSON.parse(this.clientDto.allowedScopes);
             if (_this.id > 0) {
-                    _this.title = '编辑';
+                _this.title = '编辑';
+                //_this.allowedGrantTypes = eval(('@(ViewBag.GrantType)'.replace(new RegExp('&quot;', "gm"), '"')))
+
             }
-            axios.get('/ClientsManager/GetDataById?id='+_this.id)
+
+            axios.get('/ClientsManager/GetDataById?id=' + _this.id)
                 .then(function (response) {
-                    _this.clientDto = (response.data.response);
+                    _this.clientDto = (response.data.response); _this.clientDto.accessTokenLifetime = _this.clientDto.accessTokenLifetime|| 3600;
+                    $('.js-example-basic-multiple').select2({
+                        // placeholder: "请选择作用域",
+                        //minimumInputLength: 1,
+                        search: true
+                    }).val(_this.clientDto.allowedScopes.split(',')).trigger('change');
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+            axios.get('/Common/GetIdentityServerConstants')
+                .then(function (response) {
+                    _this.allowedGrantTypes = (response.data);
                 })
                 .catch(function (error) {
                     console.log(error);
                 });
         },
-
+         
         // methods that implement data logic.
         // note there's no DOM manipulation here at all.
         methods: {
             saveClients: function () {
                 let _this = this;
                 _this.clientDto.id = _this.id;
-                _this.clientDto.accessTokenLifetime = parseInt( _this.clientDto.accessTokenLifetime);
-                console.log(_this.clientDto);
-                if (!_this.clientDto.clientId) {
-                    alert('数据不能为空');
+                _this.clientDto.accessTokenLifetime = parseInt(_this.clientDto.accessTokenLifetime);
+                if (!_this.clientDto.allowedGrantTypes) {
+                    ShowMsg('客户端不能为空');
                     return;
                 }
+                if (!_this.clientDto.clientId) {
+                    ShowMsg('允许的授权类型不能为空');
+                    return;
+                }
+                if ($('.js-example-basic-multiple').find('[data-select2-id]').length==0) {
+                    ShowMsg('作用域不能为空');
+                    return;
+                }
+                    _this.clientDto.allowedScopes = $('.js-example-basic-multiple').val().join(',');
+              @*  if (_this.clientDto.id ==0) {
+                }
+                else {
+
+                _this.clientDto.allowedScopes = [...$('.js-example-basic-multiple').find('[data-select2-id]')].map(a => a.value).join(',');// $('.js-example-basic-multiple').select2().val().join(',');
+                }*@
+                console.log(_this.clientDto);
+               
+              
                 axios.post('/ClientsManager/SaveData', _this.clientDto )
                     .then(function (response) {
                         console.log(response);
                         if (response.data.success) {
-                            alert("提交成功");
+                            ShowMsg("提交成功");
                             window.location.href='/clientsManager/index'
+                        }
+                        else {
+                            ShowFailure(response.data.msg);
                         }
                     })
                     .catch(function (error) {
                         console.log(error);
+                        ShowFailure(error.response.data.msg);
                     });
 
             },
@@ -169,6 +218,8 @@
 
     // mount
     app.$mount('.todoapp')
-
+    $(document).ready(function () {
+      
+    });
 
 </script>

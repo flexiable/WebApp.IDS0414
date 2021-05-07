@@ -1,4 +1,4 @@
-﻿namespace Blog.IdentityServer.Controllers.Client
+﻿namespace WebApp.IDS0414.Controllers.Client
 {
     public class ApiScopeDto
     {

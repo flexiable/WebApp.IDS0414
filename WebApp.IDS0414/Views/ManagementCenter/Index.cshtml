@@ -1,0 +1,333 @@
+﻿
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+   
+
+    
+</head>
+<body style="">
+
+    <div id="main_container">
+        <ul class="ul_word">
+            <li>
+                <p> 上传文件 </p>
+            </li>
+            <li>
+                <p> 扫描 </p>
+            </li>
+            <li>
+                <p> 构建 </p>
+            </li>
+            <li>
+                <p> 修改 </p>
+            </li>
+        </ul>
+        <div class="clear"></div>
+        <ul class="ul_num">
+            <li>
+                <div class="num_blue">1</div>
+            </li>
+            <li>
+                <div class="line_blue"></div>
+            </li>
+            <li>
+                <div class="line_gray"></div>
+            </li>
+            <li>
+                <div class="num_gray_out">
+                    <div class="num_gray">2</div>
+                </div>
+            </li>
+            <li>
+                <div class="line_gray"></div>
+            </li>
+            <li>
+                <div class="line_gray"></div>
+            </li>
+            <li>
+                <div class="num_gray_out">
+                    <div class="num_gray">3</div>
+                </div>
+            </li>
+            <li>
+                <div class="line_gray"></div>
+            </li>
+            <li>
+                <div class="line_gray"></div>
+            </li>
+            <li>
+                <div class="num_gray_out">
+                    <div class="num_gray">4</div>
+                </div>
+            </li>
+        </ul>
+        <div class="clear"></div>
+        <div class="follow_show">
+            <ul>
+                <li>
+                    <div>
+                        <div id="clientToolbar">
+                            <input type="text" placeholder="请输入客户端名称或ID" class="form-control" id="clientIdOrname" />
+                           @* <button class="btn btn-success">添加</button>*@
+                        </div>
+                        <table class="table table-striped" id="client_table">
+                            <thead>
+                                <tr>
+                                    <th style="width:15px;">Id</th>
+                                    <th style="width:130px;">客户端Id</th>
+                                    <th style="width:180px;">状态</th>
+
+                                    <th style="width:90px;">描述</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+
+                        <button class="next follow_btn" id="firstStep">下一步</button>
+                    </div>
+                </li>
+                <li>
+                    <div class="row">
+                        <form class="container container-small" id="client_credentials_Frm">
+                            <h1>请求接口数据</h1>
+                            <div class="form-inline form-group">
+                                @* <div>
+                    <lable>接口地址</lable>
+                    <input type="text" class="form-control" name="requestAddress">
+                </div>*@
+                                <div>
+                                    <button class="btn btn-success" name="requestSend">发送</button>
+                                </div>
+                            </div>
+                            <div class="form-inline form-group">
+                                <div>
+                                    <lable>客户端Id</lable>
+                                    <input type="text" class="form-control" name="client_id">
+                                </div>
+                                <div>
+                                    <lable>客户端secret</lable>
+                                    <input type="text" class="form-control" name="client_secret">
+                                </div>
+                                <div>
+                                    <lable>授权类型</lable>
+                                    <input type="text" class="form-control" value="client_credentials" name="grant_type">
+                                </div>
+                            </div>
+                        </form>
+                        <form class="container container-small" id="password_Frm">
+                            <h1>请求接口数据</h1>
+                            <div class="form-inline form-group">
+                                @* <div>
+                    <lable>接口地址</lable>
+                    <input type="text" class="form-control" name="requestAddress">
+                </div>*@
+                                <div>
+                                    <button class="btn btn-success" name="requestSend">发送</button>
+                                </div>
+                            </div>
+                            <div class="form-inline form-group">
+                                <div>
+                                    <lable>客户端Id</lable>
+                                    <input type="text" class="form-control" name="client_id">
+                                </div>
+                                <div>
+                                    <lable>客户端secret</lable>
+                                    <input type="text" class="form-control" name="client_secret">
+                                </div>
+                                <div>
+                                    <lable>授权类型</lable>
+                                    <input type="text" class="form-control" value="password" name="grant_type">
+                                </div>
+                                <div>
+                                    <lable>用户名</lable>
+                                    <input type="text" class="form-control" name="username">
+                                </div>
+                                <div>
+                                    <lable>密码</lable>
+                                    <input type="text" class="form-control" name="password">
+                                </div>
+                            </div>
+                        </form>
+                        <h2>返回接口数据</h2>
+                        <textarea class="form-control" rows="8"></textarea>
+                        <button class="next follow_btn" id="secStep">下一步</button>
+                    </div>
+                  @*  <div class="row">
+                       
+
+                    </div>
+                    <div>
+                        
+                    </div>*@
+                </li>
+                <li>
+                    <div>
+                        <button class="next follow_btn">完成</button>
+                    </div>
+                </li>
+                <li> 已经到底啦 </li>
+            </ul>
+        </div>
+    </div>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <link href="~/assets/css/time_d.css" rel="stylesheet" />
+    <link href="~/BootstrapTabs_files/font-awesome.min.css" rel="stylesheet" />
+    <script src="~/assets/js/time_d.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap-table.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap-table-zh-CN.js"></script>
+    <link href="~/lib/bootstrap/dist/css/bootstrap-table.min.css" rel="stylesheet" />
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+           // config.init();
+           @* $.getJSON('/ClientsManager/GetAllClientPaging', function (data) {
+                if (data.response.length > 0) {
+                    data.response.forEach(function (a) {
+
+                        $('#client_table').append($(`<tr><td>${a.id}</td><td>${a.clientId}</td><td>${a.enabled?'使用中':'已禁用'}</td><td>${a.description}</td></tr>`))
+                    })
+                }
+            });*@
+        });
+        let app = () => config;
+        (function () {
+            let config = {
+                
+                renderTable: function () {
+
+                    $('#client_table').bootstrapTable({
+                       // url: '/ClientsManager/GetAllClientPaging',         //请求后台的URL（*）
+                        method: 'post',                      //请求方式（*）
+                        url: '/ManagementCenter/GetAllClientPaging',         //请求后台的URL（*）
+                        toolbar: '#clientToolbar',                //工具按钮用哪个容器
+                        striped: true,                      //是否显示行间隔色
+                        cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                        pagination: true,                   //是否显示分页（*）
+                        sortable: false,                     //是否启用排序
+                        sortOrder: "asc",                   //排序方式
+                        queryParams: function (params) {   //请求服务器数据时，添加额外参数
+                            return {
+                                pageSize: params.limit, // 每页要显示的数据条数
+                                pageNum: (params.offset / params.limit) + 1,    // 页码
+                                searchText: params.search, SortOrder:params.order,
+                                SortName:params.sort,
+                                filter: { clientIdOrname: $("#clientIdOrname").val() }
+
+                            }
+                        },//传递参数（*）
+                        sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+                        pageNumber: 1,                       //初始化加载第一页，默认第一页
+                        pageSize: 10,                       //每页的记录行数（*）
+                        pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+                        search: true,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                        strictSearch: true,
+                        showColumns: true,                  //是否显示所有的列
+                        showRefresh: true,                  //是否显示刷新按钮
+                        minimumCountColumns: 2,             //最少允许的列数
+                        clickToSelect: true,                //是否启用点击选中行
+                        height: 500,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+                        uniqueId: "ID",                     //每一行的唯一标识，一般为主键列
+                        showToggle: true,                    //是否显示详细视图和列表视图的切换按钮
+                        cardView: false,                    //是否显示详细视图
+                        detailView: false,                   //是否显示父子表
+                        columns: [{
+                            checkbox: true
+                        }, {
+                                field: 'id',  //返回json中的name
+                                title: 'ID',   //表格表头显示文字
+                                halign: 'center', //表头居中
+                                valign: 'middle' // 上下居中
+                            },
+                            {
+                                field: 'clientId',  //返回json中的name
+                                title: '客户端',   //表格表头显示文字
+                                halign: 'center',
+                                //align:'center',   //左右居中
+                                valign: 'middle' // 上下居中
+                            },
+                            {
+                                field: 'enabled',  //返回json中的name
+                                title: '状态',   //表格表头显示文字
+                                halign: 'center',
+                                //align:'center',   //左右居中
+                                valign: 'middle', // 上下居中
+                                formatter: function (value) {
+                                    return value ? '启用' : '禁用';
+    
+    
+    
+                            }
+
+                            },
+                            {
+                                field: 'description',  //返回json中的name
+                                title: '描述',   //表格表头显示文字
+                                halign: 'center',
+                                //align:'center',   //左右居中
+                                valign: 'middle' // 上下居中
+                            },
+                        ]
+                    });
+                },
+                renderAllBtns: function () {
+                    $(".next").click(function () {
+                        if (this.id == 'firstStep') {
+                            //使用getSelections即可获得，row是json格式的数据
+                            var client_tableSelectRows = $("#client_table").bootstrapTable('getSelections', (row) => row);
+                            if (client_tableSelectRows.length == 0) {
+                                ShowMsg('未选中任何数据。');
+                                return;
+                            }
+                            next($(this));
+                           // $('#client_credentials_Frm').closest('li').show().end().siblings().hide();
+                            client_tableSelectRows.forEach(x => {
+                                $('Form').each(function () {
+                                    $(this).hide();
+                                    if (this.id.lastIndexOf(x.allowedGrantTypes) > -1) {
+                                        $(this).closest('li').show().end(); $(this).show();
+                                    }
+                                })
+                            });
+                        }
+                       
+
+                    });
+                    $('[name="requestSend"]').click(function () {
+                        var frm = $(this).closest('form'); event.preventDefault();
+                       @* $.post(`http://${location.host}/connect/token`, frm.serialize(), data => {
+                            $('textarea').val(data); return;
+                        }, 'json');*@
+                        $.ajax({
+                            url: `http://${location.host}/connect/token`,    //请求的url地址
+                            dataType: "json",   //返回格式为json
+                            async: true, //请求是否异步，默认为异步，这也是ajax重要特性
+                            data: frm.serialize(),    //参数值
+                            type: "POST",   //请求方式
+                            success: function (data, textStatus) {
+                                $('textarea').val(JSON.stringify(data,null,4)); 
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                console.log('请求发生错误：' + textStatus);
+                            }
+                        });
+                    });
+                },
+                init: () => {
+                    var self = this;
+                    config.renderTable();
+                    config.renderAllBtns();
+                }
+            }
+            return config.init()
+        })();
+
+    </script>
+</body>
